@@ -18,6 +18,9 @@ from django.utils.encoding import escape_uri_path, force_bytes, iri_to_uri
 from django.utils.http import is_same_domain, limited_parse_qsl
 
 RAISE_ERROR = object()
+
+#Using Python re to check if a host is legal.
+#使用 Python 正则表达式检查host是否合法
 host_validation_re = re.compile(r"^([a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9\.:]+\])(:\d+)?$")
 
 
@@ -71,6 +74,7 @@ class HttpRequest:
         allowed hosts protection, so may return an insecure host.
         """
         # We try three options, in order of decreasing preference.
+        #如何获取请求的host信息，三个请求头依次检查
         if settings.USE_X_FORWARDED_HOST and (
                 'HTTP_X_FORWARDED_HOST' in self.META):
             host = self.META['HTTP_X_FORWARDED_HOST']
@@ -186,6 +190,7 @@ class HttpRequest:
         """
         return 'http'
 
+    #Python基础：@property装饰器将方法变成属性调用
     @property
     def scheme(self):
         if settings.SECURE_PROXY_SSL_HEADER:
@@ -203,6 +208,7 @@ class HttpRequest:
         return self.scheme == 'https'
 
     def is_ajax(self):
+        #HTTP_X_REQUESTED_WITH 判断是否ajax请求
         return self.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
     @property
@@ -490,6 +496,8 @@ class QueryDict(MultiValueDict):
             'next=%2Fa%26b%2F'
             >>> q.urlencode(safe='/')
             'next=/a%26b/'
+            >>> q.urlencode("/&")
+            u'next=/a&b/'
         """
         output = []
         if safe:
@@ -539,6 +547,8 @@ def split_domain_port(host):
     if host[-1] == ']':
         # It's an IPv6 address without a port.
         return host, ''
+
+    #rsplit() behaves like split()
     bits = host.rsplit(':', 1)
     domain, port = bits if len(bits) == 2 else (bits[0], '')
     # Remove a trailing dot (if present) from the domain.
